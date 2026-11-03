@@ -89,23 +89,3 @@ bindings = [
 
 # Critical: Horizon itself clamps the result of the native_zoom hook to 10x.
 # Modify exactly the 10.0 literal in native_zoom_now to permit up to 1,000,000x.
-[[injection]]
-id = "engine_cap"
-kind = "MODIFY_CONSTANT"
-target = "horizon_client::game::native_hooks::Game<'_>::native_zoom_now"
-helper = "engine_cap.rs"
-selector = "10.0"
-require = 1
-ordinal = 0
-bindings = [{ name = "old", ty = "f32", value = "$value" }]
-
-# Horizon also clamps mouse turn speed to no less than 5%, too high for huge zoom.
-[[injection]]
-id = "engine_turn_min"
-kind = "MODIFY_CONSTANT"
-target = "horizon_client::game::native_hooks::Game<'_>::native_zoom_now"
-helper = "engine_turn.rs"
-selector = "0.05"
-require = 1
-ordinal = 0
-bindings = [{ name = "old", ty = "f32", value = "$value" }]
