@@ -11,6 +11,19 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Unit test zoom logic
         run: cargo test
+      - name: Validate hooks against real Horizon Nightly source
+        run: |
+          set -euxo pipefail
+          git clone --depth 1 --branch nightly-source/2026-11-07-2ebf00a https://github.com/horizon-rust/horizon.git "$RUNNER_TEMP/horizon-source"
+          git clone --depth 1 https://github.com/horizon-rust/horizon-mixins.git "$RUNNER_TEMP/horizon-mixins"
+          mkdir -p "$RUNNER_TEMP/native-mods/infinite_zoom"
+          cp horizon-mixin.toml *.rs "$RUNNER_TEMP/native-mods/infinite_zoom/"
+          cargo run --locked --manifest-path "$RUNNER_TEMP/horizon-mixins/Cargo.toml" -p horizon-mixins-cli -- plan --workspace "$RUNNER_TEMP/horizon-source" --mods "$RUNNER_TEMP/native-mods" --out "$RUNNER_TEMP/zoom-plan.json"
+      - name: Compile patched Horizon game
+        run: |
+          set -euxo pipefail
+          cargo run --locked --manifest-path "$RUNNER_TEMP/horizon-mixins/Cargo.toml" -p horizon-mixins-cli -- apply --workspace "$RUNNER_TEMP/horizon-source" --mods "$RUNNER_TEMP/native-mods" --out "$RUNNER_TEMP/horizon-patched"
+          cargo check --manifest-path "$RUNNER_TEMP/horizon-patched/Cargo.toml" --locked -p horizon-client --bin horizon-client
       - name: Validate manifest and create native-mod package
         run: |
           python3 - <<'PY'
