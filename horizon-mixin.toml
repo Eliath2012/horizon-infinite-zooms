@@ -28,8 +28,8 @@ id = "permit_extreme_fov"
 kind = "MODIFY_CONSTANT"
 target = "horizon_client::game::fov::Game<'_>::fov_degrees"
 selector = "1.0"
-require = 2
-ordinal = 1
+require = 1
+ordinal = 0
 helper = "fov_floor.rs"
 bindings = [{ name = "old", ty = "f32", value = "$value" }]
 
