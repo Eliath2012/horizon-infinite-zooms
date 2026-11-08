@@ -4,7 +4,7 @@
 use std::cell::RefCell;
 
 pub const ID: &str = "infinite_zoom";
-pub const VERSION: &str = "1.1.0";
+pub const VERSION: &str = "1.2.0";
 pub const DESCRIPTION: &str =
     "Hold C and scroll up to 1,000,000x with a precision HUD and smooth controls.";
 pub const KEY: &str = "zoom";
