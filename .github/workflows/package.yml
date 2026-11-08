@@ -1,0 +1,61 @@
+name: Package Infinite Zoom
+on:
+  push:
+    branches: [feature/mega-zoom-nightly-2026-11-07]
+  workflow_dispatch:
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Unit test zoom logic
+        run: cargo test
+      - name: Validate manifest and create native-mod package
+        run: |
+          python3 - <<'PY'
+          import json, tomllib, zipfile, pathlib, hashlib
+          root = pathlib.Path('.')
+          manifest = tomllib.loads((root/'horizon-mixin.toml').read_text())
+          compat = json.loads((root/'compatibility.json').read_text())
+          assert manifest['mod']['id'] == 'infinite_zoom'
+          assert manifest['mod']['version'] == '1.1.0'
+          assert manifest['compatibility']['horizon_revision'] == compat['horizon_revision']
+          for hook in manifest['injection']:
+              assert (root/hook['helper']).is_file(), hook['helper']
+          for module in manifest['module']:
+              assert (root/module['source']).is_file(), module['source']
+          package = {
+            'schema': 1,
+            'id': manifest['mod']['id'],
+            'version': manifest['mod']['version'],
+            'game': compat['game'],
+            'horizon': compat['horizon_revision'],
+            'mixins': compat['horizon_mixins_revision'],
+            'hooks': compat['hooks'],
+          }
+          out = pathlib.Path('infinite_zoom-1.1.0.hnmod')
+          files = {
+              'horizon-native.json': (json.dumps(package,sort_keys=True,indent=2)+'\n').encode(),
+              'mixins/infinite_zoom/horizon-mixin.toml': (root/'horizon-mixin.toml').read_bytes()
+          }
+          for path in root.glob('*.rs'):
+              files['mixins/infinite_zoom/'+path.name] = path.read_bytes()
+          if (root/'LICENSE').exists():
+              files['mixins/infinite_zoom/LICENSE'] = (root/'LICENSE').read_bytes()
+          with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as archive:
+              for name, content in sorted(files.items()):
+                  info = zipfile.ZipInfo(name, (2026,1,1,0,0,0))
+                  info.compress_type = zipfile.ZIP_DEFLATED
+                  info.external_attr = 0o100644 << 16
+                  archive.writestr(info,content)
+          print(out, out.stat().st_size, hashlib.sha256(out.read_bytes()).hexdigest())
+          with zipfile.ZipFile(out) as z:
+              assert json.loads(z.read('horizon-native.json')) == package
+              assert 'mixins/infinite_zoom/zoom_engine.rs' in z.namelist()
+              assert 'mixins/infinite_zoom/fov_floor.rs' in z.namelist()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: infinite-zoom-hnmod
+          path: infinite_zoom-1.1.0.hnmod
