@@ -21,6 +21,18 @@ bindings = [
   { name = "game", ty = "&crate::game::Game<'_>", value = "self" },
 ]
 
+# Avoid the fov_degrees postprocessing rejection of field-of-view values
+# below 1 degree. This is the SECOND 1.0 literal in that specific method.
+[[injection]]
+id = "permit_extreme_fov"
+kind = "MODIFY_CONSTANT"
+target = "horizon_client::game::fov::Game<'_>::fov_degrees"
+selector = "1.0"
+require = 2
+ordinal = 1
+helper = "fov_floor.rs"
+bindings = [{ name = "old", ty = "f32", value = "$value" }]
+
 [[module]]
 id = "runtime"
 file = "crates/horizon-client/src/game.rs"
