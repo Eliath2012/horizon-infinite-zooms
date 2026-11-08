@@ -1,6 +1,6 @@
 [mod]
 id = "infinite_zoom"
-version = "1.1.0"
+version = "1.2.0"
 priority = 200
 
 # Tested-source pin. Engine implementation hooks can change in future Nightlies.
@@ -21,8 +21,21 @@ bindings = [
   { name = "game", ty = "&crate::game::Game<'_>", value = "self" },
 ]
 
+# The upstream Camera::tick implementation clamps eased FOV modifiers to
+# 0.1, so Smooth Zoom silently stops at 10x even if the HUD keeps scrolling.
+# This targets the original camera easing bound in the render crate.
+[[injection]]
+id = "uncap_smooth_camera_easing"
+kind = "MODIFY_CONSTANT"
+target = "horizon_client_render::camera::Camera::tick"
+selector = "0.1"
+require = 1
+ordinal = 0
+helper = "camera_easing_floor.rs"
+bindings = [{ name = "old", ty = "f32", value = "$value" }]
+
 # Avoid the fov_degrees postprocessing rejection of field-of-view values
-# below 1 degree. This is the SECOND 1.0 literal in that specific method.
+# below 1 degree. Exactly one 1.0 literal exists in that method.
 [[injection]]
 id = "permit_extreme_fov"
 kind = "MODIFY_CONSTANT"
@@ -113,4 +126,4 @@ bindings = [
   { name = "button", ty = "usize", value = "button" },
 ]
 
-# The HEAD hook above supplies the actual engine-cap fix.\n
+# Three camera-stage guards now permit high actual smooth zoom.
