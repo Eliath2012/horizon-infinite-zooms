@@ -38,7 +38,7 @@ jobs:
           manifest = tomllib.loads((root/'horizon-mixin.toml').read_text())
           compat = json.loads((root/'compatibility.json').read_text())
           assert manifest['mod']['id'] == 'infinite_zoom'
-          assert manifest['mod']['version'] == '1.1.0'
+          assert manifest['mod']['version'] == '1.2.0'
           assert manifest['compatibility']['horizon_revision'] == compat['horizon_revision']
           for hook in manifest['injection']:
               assert (root/hook['helper']).is_file(), hook['helper']
@@ -53,7 +53,7 @@ jobs:
             'mixins': compat['horizon_mixins_revision'],
             'hooks': compat['hooks'],
           }
-          out = pathlib.Path('infinite_zoom-1.1.0.hnmod')
+          out = pathlib.Path('infinite_zoom-1.2.0.hnmod')
           files = {
               'horizon-native.json': (json.dumps(package,sort_keys=True,indent=2)+'\n').encode(),
               'mixins/infinite_zoom/horizon-mixin.toml': (root/'horizon-mixin.toml').read_bytes()
@@ -73,8 +73,9 @@ jobs:
               assert json.loads(z.read('horizon-native.json')) == package
               assert 'mixins/infinite_zoom/zoom_engine.rs' in z.namelist()
               assert 'mixins/infinite_zoom/fov_floor.rs' in z.namelist()
+              assert 'mixins/infinite_zoom/camera_easing_floor.rs' in z.namelist()
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: infinite-zoom-hnmod
-          path: infinite_zoom-1.1.0.hnmod
+          path: infinite_zoom-1.2.0.hnmod
