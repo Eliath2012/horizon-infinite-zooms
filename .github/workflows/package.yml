@@ -16,6 +16,8 @@ jobs:
           set -euxo pipefail
           git clone --depth 1 --branch nightly-source/2026-11-07-2ebf00a https://github.com/horizon-rust/horizon.git "$RUNNER_TEMP/horizon-source"
           git clone --depth 1 https://github.com/horizon-rust/horizon-mixins.git "$RUNNER_TEMP/horizon-mixins"
+          # The mixin stage disallows upstream symlinks such as CLAUDE.md.
+          find "$RUNNER_TEMP/horizon-source" -type l -delete
           mkdir -p "$RUNNER_TEMP/native-mods/infinite_zoom"
           cp horizon-mixin.toml *.rs "$RUNNER_TEMP/native-mods/infinite_zoom/"
           cargo run --locked --manifest-path "$RUNNER_TEMP/horizon-mixins/Cargo.toml" -p horizon-mixins-cli -- plan --workspace "$RUNNER_TEMP/horizon-source" --mods "$RUNNER_TEMP/native-mods" --out "$RUNNER_TEMP/zoom-plan.json"
