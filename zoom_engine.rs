@@ -2,7 +2,7 @@
 // Only intercept while our mod is enabled AND the zoom key is held.
 fn infinite_zoom_engine_override(
     game: &crate::game::Game<'_>,
-) -> ::core::ops::ControlFlow<Option<crate::game::native_hooks::NativeZoom>> {
+) -> ::core::ops::ControlFlow<Option<NativeZoom>> {
     use crate::game::infinite_zoom as iz;
     use crate::game::native_hooks::NativeZoom;
 
