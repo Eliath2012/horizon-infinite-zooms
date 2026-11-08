@@ -1,11 +1,25 @@
 [mod]
 id = "infinite_zoom"
-version = "1.0.0"
+version = "1.1.0"
 priority = 200
 
 # Tested-source pin. Engine implementation hooks can change in future Nightlies.
 [compatibility]
-horizon_revision = "6f8c7a0e5d531d3834c4d0be4659a1db8e7e5c2a"
+horizon_revision = "2ebf00a0281c592f79191e76fce0e7d522c6f425"
+
+# The stock native_zoom_now path clamps native mods to 10x and enforces
+# a 0.05 turn-rate floor. This cancellable HEAD hook preserves ordinary
+# Horizon behavior unless Infinite Zoom is enabled and currently held.
+# Unlike an unused helper file, this hook actually executes at runtime.
+[[injection]]
+id = "unclamp_active_zoom"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::native_hooks::Game<'_>::native_zoom_now"
+helper = "zoom_engine.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "self" },
+]
 
 [[module]]
 id = "runtime"
@@ -87,5 +101,4 @@ bindings = [
   { name = "button", ty = "usize", value = "button" },
 ]
 
-# Critical: Horizon itself clamps the result of the native_zoom hook to 10x.
-# Modify exactly the 10.0 literal in native_zoom_now to permit up to 1,000,000x.
+# The HEAD hook above supplies the actual engine-cap fix.\n
